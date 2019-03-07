@@ -1,6 +1,8 @@
 extern crate clap;
+extern crate speedtestr;
 
 use clap::{Arg, App, AppSettings, SubCommand};
+use speedtestr::{server};
 
 fn main() {
     let app = App::new("speedtestr")
@@ -20,6 +22,7 @@ fn main() {
 
     if app.is_present("list") {
         println!("LSIT");
+        server::list_servers();
     }
 
     if let Some(app) = app.subcommand_matches("ping") {
