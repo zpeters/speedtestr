@@ -29,14 +29,22 @@ fn main() {
     }
 
     if let Some(app) = app.subcommand_matches("ping") {
-        println!("You chose ping");
-        println!("Server? {:#?}", app.is_present("server"));
-        println!("Server val {:#?}", app.value_of("server"));
+        println!("Pinging...");
+        if app.is_present("server") {
+            let server = app.value_of("server").unwrap();
+            let resp = server::ping_server(server);
+            match resp {
+                Ok(ms) => println!("Ping {} took {} ms", server, ms),
+                Err(e) => println!("[Error] {}", e),
+            }
+        } else {
+            println!("Ping but no server specified")
+        };
     }
 
     fn print_servers(servers: Vec<Server>) {
         for s in servers {
-            println!("{} - ({}) {} {}", s.id, s.sponsor, s.name, s.cc);
+            println!("{} - [distance {}] - ({}) {} {}", s.id, s.distance, s.sponsor, s.name, s.cc);
         };
     }
 
