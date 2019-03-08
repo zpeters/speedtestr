@@ -13,12 +13,12 @@ pub mod server {
         lat: String,
         lon: String,
         distance: i32,
-        name: String,
+        pub name: String,
         country: String,
-        cc: String,
-        sponsor: String,
-        id: String,
-        host: String,
+        pub cc: String,
+        pub sponsor: String,
+        pub id: String,
+        pub host: String,
         #[serde(skip)]
         latency: i32,
     }

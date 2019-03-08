@@ -2,7 +2,7 @@ extern crate clap;
 extern crate speedtestr;
 
 use clap::{Arg, App, AppSettings, SubCommand};
-use speedtestr::{server};
+use speedtestr::{server, server::Server};
 
 fn main() {
     let app = App::new("speedtestr")
@@ -23,7 +23,7 @@ fn main() {
     if app.is_present("list") {
         let resp = server::list_servers();
         match resp {
-            Ok(n) => println!("OK: {:#?}", n),
+            Ok(n) => print_servers(n),
             Err(n) => println!("Err: {}", n),
         }
     }
@@ -32,6 +32,12 @@ fn main() {
         println!("You chose ping");
         println!("Server? {:#?}", app.is_present("server"));
         println!("Server val {:#?}", app.value_of("server"));
+    }
+
+    fn print_servers(servers: Vec<Server>) {
+        for s in servers {
+            println!("{} - ({}) {} {}", s.id, s.sponsor, s.name, s.cc);
+        };
     }
 
 }
