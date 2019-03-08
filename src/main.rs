@@ -21,8 +21,11 @@ fn main() {
         .get_matches();
 
     if app.is_present("list") {
-        println!("LSIT");
-        server::list_servers();
+        let resp = server::list_servers();
+        match resp {
+            Ok(n) => println!("OK: {:#?}", n),
+            Err(n) => println!("Err: {}", n),
+        }
     }
 
     if let Some(app) = app.subcommand_matches("ping") {

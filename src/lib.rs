@@ -1,24 +1,31 @@
 extern crate reqwest;
-#[macro_use] extern crate serde_derive;
+#[macro_use]
+extern crate serde_derive;
 extern crate serde_json;
 
 pub mod server {
 
     use std::error;
 
-    #[derive(Deserialize)]
-    struct Ip {
-        origin: String,
+    #[derive(Debug,Deserialize)]
+    pub struct Server {
+        url: String,
+        lat: String,
+        lon: String,
+        distance: i32,
+        name: String,
+        country: String,
+        cc: String,
+        sponsor: String,
+        id: String,
+        host: String,
+        #[serde(skip)]
+        latency: i32,
     }
 
-    pub fn list_servers() -> Result<String, Box<error::Error>> {
-        println!("Listing servers");
-        let body = reqwest::get("https://www.speedtest.net/api/js/servers?engine=js")?
-//        let body = reqwest::get("https://www.rust-lang.org")?
-            .text()?;
-
-        println!("body = {:?}", body);
-
-        return Ok("OK".to_string());
+    pub fn list_servers() -> Result<Vec<Server>, Box<error::Error>> {
+        let body: Vec<Server> = reqwest::get("https://www.speedtest.net/api/js/servers?engine=js")?
+            .json()?;
+        Ok(body)
     }
 }
