@@ -22,13 +22,8 @@ fn main() {
         .get_matches();
 
     if app.is_present("best") {
-        let mut servers = server::list_servers().unwrap();
-        servers.sort_by_key(|s| s.distance);
-        servers.truncate(3);
-        servers.iter_mut().for_each(|s| s.latency = server::ping_server(&s.id).unwrap());
-        servers.sort_by_key(|s| s.latency);
-        println!("Sorted Servers: {:#?}", servers);
-        println!("Best server: {:#?}", servers[0]);
+        let best = server::best_server();
+        println!("Best Server: {:#?}", best)
     }
 
     if app.is_present("list") {
