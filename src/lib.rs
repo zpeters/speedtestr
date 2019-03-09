@@ -71,10 +71,10 @@ pub mod server {
         Ok(body)
     }
 
-    pub fn best_server() -> Result<Server, Box<error::Error>> {
+    pub fn best_server(num_test: &str) -> Result<Server, Box<error::Error>> {
         let mut servers = list_servers().unwrap();
         servers.sort_by_key(|s| s.distance);
-        servers.truncate(3);
+        servers.truncate(num_test.parse::<usize>().unwrap());
         servers.iter_mut().for_each(|s| s.latency = ping_server(&s.id).unwrap());
         servers.sort_by_key(|s| s.latency);
         let best = servers[0].clone();

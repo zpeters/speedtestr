@@ -12,7 +12,13 @@ fn main() {
         .setting(AppSettings::ArgRequiredElseHelp)
         .setting(AppSettings::ColoredHelp)
         .subcommand(SubCommand::with_name("list").about("Lists available servers"))
-        .subcommand(SubCommand::with_name("best").about("Best server"))
+        .subcommand(SubCommand::with_name("best")
+                    .about("Best server")
+                    .arg(Arg::with_name("numclosest")
+                         .short("n")
+                         .default_value("3")
+                         .takes_value(true)
+                         .help("number of closest servers to test")))
         .subcommand(SubCommand::with_name("ping")
                     .about("Pings the best server")
                     .arg(Arg::with_name("server")
@@ -21,8 +27,8 @@ fn main() {
                          .help("specify a server number to ping")))
         .get_matches();
 
-    if app.is_present("best") {
-        let best = server::best_server();
+    if let Some(app) = app.subcommand_matches("best") {
+        let best = server::best_server(app.value_of("numclosest").unwrap());
         println!("Best Server: {:#?}", best)
     }
 

@@ -1,12 +1,14 @@
 = TODO
 
+testing
+make a better ping display
+swap soem println fro debug
+
+
 == lib.rs
+- best server ping with a "quick" ping
+- ping get an average
 - ping how to deal with a server that isn't found (now i get an unwrap error)
-- implement "best" server
--- sort by 'distance'
--- get the top N unique distance
--- profile with a quick ping
 - in ping_server the function seems clunky , need to review it
-- ping server average of N pings
 - download
 - upload
