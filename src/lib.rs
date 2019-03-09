@@ -7,7 +7,7 @@ pub mod server {
 
     use std::error;
 
-    #[derive(Debug,Deserialize)]
+    #[derive(Clone,Debug,Deserialize)]
     pub struct Server {
         url: String,
         lat: String,
@@ -20,13 +20,15 @@ pub mod server {
         pub id: String,
         pub host: String,
         #[serde(skip)]
-        latency: i32,
+        pub latency: u128,
     }
 
     pub fn ping_server(server: &str) -> Result<u128, Box<error::Error>> {
         use std::net::TcpStream;
         use std::io::{BufReader, BufRead, Write};
         use std::time::{Instant};
+
+        println!("Pinging server: {}", server);
 
         let all_servers = match list_servers() {
             Ok(n) => n,

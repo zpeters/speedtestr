@@ -12,6 +12,7 @@ fn main() {
         .setting(AppSettings::ArgRequiredElseHelp)
         .setting(AppSettings::ColoredHelp)
         .subcommand(SubCommand::with_name("list").about("Lists available servers"))
+        .subcommand(SubCommand::with_name("best").about("Best server"))
         .subcommand(SubCommand::with_name("ping")
                     .about("Pings the best server")
                     .arg(Arg::with_name("server")
@@ -19,6 +20,16 @@ fn main() {
                          .takes_value(true)
                          .help("specify a server number to ping")))
         .get_matches();
+
+    if app.is_present("best") {
+        let mut servers = server::list_servers().unwrap();
+        servers.sort_by_key(|s| s.distance);
+        servers.truncate(3);
+        servers.iter_mut().for_each(|s| s.latency = server::ping_server(&s.id).unwrap());
+        servers.sort_by_key(|s| s.latency);
+        println!("Sorted Servers: {:#?}", servers);
+        println!("Best server: {:#?}", servers[0]);
+    }
 
     if app.is_present("list") {
         let resp = server::list_servers();
