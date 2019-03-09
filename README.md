@@ -12,3 +12,7 @@ swap soem println fro debug
 - in ping_server the function seems clunky , need to review it
 - download
 - upload
+
+== other 
+makefiles for cross compile
+doc
