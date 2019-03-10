@@ -12,13 +12,6 @@ fn main() {
         .setting(AppSettings::ArgRequiredElseHelp)
         .setting(AppSettings::ColoredHelp)
         .subcommand(SubCommand::with_name("list").about("Lists available servers"))
-        .subcommand(SubCommand::with_name("best")
-                    .about("Best server")
-                    .arg(Arg::with_name("numclosest")
-                         .short("n")
-                         .default_value("3")
-                         .takes_value(true)
-                         .help("number of closest servers to test")))
         .subcommand(SubCommand::with_name("ping")
                     .about("Pings the best server")
                     .arg(Arg::with_name("server")
@@ -26,11 +19,6 @@ fn main() {
                          .takes_value(true)
                          .help("specify a server number to ping")))
         .get_matches();
-
-    if let Some(app) = app.subcommand_matches("best") {
-        let best = server::best_server(app.value_of("numclosest").unwrap());
-        println!("Best Server: {:#?}", best)
-    }
 
     if app.is_present("list") {
         let resp = server::list_servers();
@@ -41,17 +29,21 @@ fn main() {
     }
 
     if let Some(app) = app.subcommand_matches("ping") {
-        println!("Pinging...");
-        if app.is_present("server") {
-            let server = app.value_of("server").unwrap();
-            let resp = server::ping_server(server);
-            match resp {
-                Ok(ms) => println!("Ping {} took {} ms", server, ms),
-                Err(e) => println!("[Error] {}", e),
-            }
-        } else {
-            println!("Ping but no server specified")
-        };
+        println!("[ping]");
+        let best;
+        let svr =
+            if app.is_present("server") {
+                app.value_of("server").unwrap()
+            } else {
+                best = server::best_server("3").unwrap().to_owned();
+                best.id.as_str()
+            };
+
+        let resp = server::ping_server(svr);
+        match resp {
+            Ok(ms) => println!("Ping {} took {} ms", svr, ms),
+            Err(e) => println!("[Error] {}", e),
+       }
     }
 
     fn print_servers(servers: Vec<Server>) {

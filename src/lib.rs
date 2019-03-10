@@ -72,6 +72,7 @@ pub mod server {
     }
 
     pub fn best_server(num_test: &str) -> Result<Server, Box<error::Error>> {
+        println!("Finding best server...");
         let mut servers = list_servers().unwrap();
         servers.sort_by_key(|s| s.distance);
         servers.truncate(num_test.parse::<usize>().unwrap());
