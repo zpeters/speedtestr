@@ -2,6 +2,8 @@ extern crate reqwest;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+#[macro_use] extern crate log;
+extern crate simplelog;
 
 pub mod server {
 
@@ -23,7 +25,7 @@ pub mod server {
         pub latency: u128,
     }
 
-    pub fn ping_server(server: &str) -> Result<u128, Box<error::Error>> {
+    pub fn ping_server(server: &str, num_pings: u128) -> Result<u128, Box<error::Error>> {
         use std::net::TcpStream;
         use std::io::{BufReader, BufRead, Write};
         use std::time::{Instant};
@@ -37,30 +39,32 @@ pub mod server {
             .into_iter()
             .find(|s| s.id == server)
             .ok_or(format!("Can't find server '{}'", server))?;
+        let serv = s.clone();
 
-        let conn = TcpStream::connect(s.host);
-        match conn {
-            Ok(mut stream) => {
-                let now = Instant::now();
-                stream.write(b"HI\r\n").unwrap();
-                let mut line = String::new();
-                let mut reader = BufReader::new(stream);
-                let resp = reader.read_line(&mut line);
-                match resp {
-                    Ok(_n) => {
-                        Ok(now.elapsed().as_millis())
-                    },
-                    Err(e) => {
-                        println!("Failed to get response: {}", e);
-                        Ok(0)
+        let mut acc: u128 = 0;
+        for _x in 0..num_pings {
+            info!("Pinging {}", &serv.host);
+            let conn = TcpStream::connect(&serv.host);
+            match conn {
+                Ok(mut stream) => {
+                    let now = Instant::now();
+                    stream.write(b"HI\r\n").unwrap();
+                    let mut line = String::new();
+                    let mut reader = BufReader::new(stream);
+                    let resp = reader.read_line(&mut line);
+                    match resp {
+                        Ok(_n) => {
+                            let elapsed = now.elapsed().as_millis();
+                            acc = acc + elapsed;
+                            info!("Ping {} ms", elapsed);
+                        },
+                            Err(e) => {error!("Failed to ping server: Error: '{}'", e); panic!();},
                     }
-                }
-            },
-            Err(e) => {
-                println!("Failed to connect: {}", e);
-                Ok(0)
-            },
+                },
+                Err(e) => {error!("Failed to connect to server: Error: '{}'", e); panic!();},
+            }
         }
+        Ok(acc / num_pings)
     }
 
     pub fn list_servers() -> Result<Vec<Server>, Box<error::Error>> {
@@ -75,18 +79,31 @@ pub mod server {
 
         print!("[finding best server ");
         io::stdout().flush().unwrap();
-        let mut servers = list_servers().unwrap();
+        let mut servers = match list_servers() {
+            Ok(s) => s,
+            Err(e) => {error!("List servers failed: Error: '{}'", e); panic!();},
+        };
         servers.sort_by_key(|s| s.distance);
         servers.truncate(num_test.parse::<usize>().unwrap());
         servers.iter_mut().for_each(|s| {
             print!(".");
             io::stdout().flush().unwrap();
-            s.latency = ping_server(&s.id).unwrap();
+            s.latency = ping_server(&s.id, 1).unwrap();
         });
+        println!("]");
+        io::stdout().flush().unwrap();
         servers.sort_by_key(|s| s.latency);
         let best = servers[0].clone();
-        println!(" {}]", best.id);
-        io::stdout().flush().unwrap();
         Ok(best)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        assert_eq!(2 + 2, 4);
     }
 }
