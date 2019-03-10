@@ -25,6 +25,43 @@ pub mod server {
         pub latency: u128,
     }
 
+    pub fn download(server: &str) -> Result<f64, Box<error::Error>>{
+        use std::net::TcpStream;
+        use std::time::{Instant};
+        use std::io::{BufReader, BufRead, Write};
+
+        let dlsize: &str = "100000024";
+        let all_servers = match list_servers() {
+            Ok(n) => n,
+            Err(_e) => Vec::<Server>::new(),
+        };
+
+        let s = all_servers
+            .into_iter()
+            .find(|s| s.id == server)
+            .ok_or(format!("Can't find server '{}'", server))?;
+        let serv = s.clone();
+
+        println!("Reading {} bytes", dlsize);
+        let conn = TcpStream::connect(&serv.host);
+        match conn {
+            Ok(mut stream) => {
+                let now = Instant::now();
+                let dlstring = format!("DOWNLOAD {}\r\n", dlsize);
+                stream.write(dlstring.as_bytes()).unwrap();
+                let mut line = String::new();
+                let mut reader = BufReader::new(stream);
+                let _resp = reader.read_line(&mut line);
+                let elapsed = now.elapsed().as_millis();
+                println!("Download took {} ms", elapsed);
+                let bms = dlsize.parse::<u128>().unwrap() / elapsed;
+                let mbps = bms as f64 * 0.008;
+                Ok(mbps)
+            },
+            Err(e) => {error!("Failed to connect to server: Error: '{}'", e); panic!();},
+        }
+    }
+
     pub fn ping_server(server: &str, num_pings: u128) -> Result<u128, Box<error::Error>> {
         use std::net::TcpStream;
         use std::io::{BufReader, BufRead, Write};

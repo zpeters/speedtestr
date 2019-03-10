@@ -23,6 +23,7 @@ fn main() {
         .setting(AppSettings::ArgRequiredElseHelp)
         .setting(AppSettings::ColoredHelp)
         .subcommand(SubCommand::with_name("list").about("Lists available servers"))
+        .subcommand(SubCommand::with_name("download").about("Download test"))
         .subcommand(SubCommand::with_name("ping")
                     .about("Pings the best server")
                     .arg(Arg::with_name("numservers")
@@ -49,6 +50,12 @@ fn main() {
             Ok(n) => print_servers(n),
             Err(n) => error!("Err: {}", n),
         }
+    }
+
+    if app.is_present("download") {
+        let best = server::best_server("3").unwrap().to_owned();
+        let dl = server::download(best.id.as_str()).unwrap();
+        println!("Download Results {:#?} mbps", dl);
     }
 
     if let Some(app) = app.subcommand_matches("ping") {
