@@ -28,8 +28,6 @@ pub mod server {
         use std::io::{BufReader, BufRead, Write};
         use std::time::{Instant};
 
-        println!("Pinging server: {}", server);
-
         let all_servers = match list_servers() {
             Ok(n) => n,
             Err(_e) => Vec::<Server>::new(),
@@ -72,13 +70,23 @@ pub mod server {
     }
 
     pub fn best_server(num_test: &str) -> Result<Server, Box<error::Error>> {
-        println!("Finding best server...");
+        use std::io;
+        use std::io::Write;
+
+        print!("[finding best server ");
+        io::stdout().flush().unwrap();
         let mut servers = list_servers().unwrap();
         servers.sort_by_key(|s| s.distance);
         servers.truncate(num_test.parse::<usize>().unwrap());
-        servers.iter_mut().for_each(|s| s.latency = ping_server(&s.id).unwrap());
+        servers.iter_mut().for_each(|s| {
+            print!(".");
+            io::stdout().flush().unwrap();
+            s.latency = ping_server(&s.id).unwrap();
+        });
         servers.sort_by_key(|s| s.latency);
         let best = servers[0].clone();
+        println!(" {}]", best.id);
+        io::stdout().flush().unwrap();
         Ok(best)
     }
 }

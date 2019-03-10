@@ -1,9 +1,7 @@
 = TODO
 
 testing
-make a better ping display
-swap soem println fro debug
-
+logging
 
 == lib.rs
 - best server ping with a "quick" ping

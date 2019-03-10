@@ -14,6 +14,16 @@ fn main() {
         .subcommand(SubCommand::with_name("list").about("Lists available servers"))
         .subcommand(SubCommand::with_name("ping")
                     .about("Pings the best server")
+                    .arg(Arg::with_name("numservers")
+                         .short("n")
+                         .takes_value(true)
+                         .help("Number of servers to test with")
+                    )
+                    .arg(Arg::with_name("numpings")
+                         .short("p")
+                         .takes_value(true)
+                         .help("Number of pings to test with")
+                    )
                     .arg(Arg::with_name("server")
                          .short("s")
                          .takes_value(true)
@@ -29,21 +39,38 @@ fn main() {
     }
 
     if let Some(app) = app.subcommand_matches("ping") {
-        println!("[ping]");
+        use std::io;
+        use std::io::Write;
+
         let best;
+        let num_best = app.value_of("numservers").unwrap_or("3");
+        let num_pings = app.value_of("numpings").unwrap_or("3").parse::<u128>().unwrap();
+        println!("[ping test ({} servers / {} pings)]", num_best, num_pings);
         let svr =
             if app.is_present("server") {
                 app.value_of("server").unwrap()
             } else {
-                best = server::best_server("3").unwrap().to_owned();
+                best = server::best_server(num_best).unwrap().to_owned();
                 best.id.as_str()
             };
 
-        let resp = server::ping_server(svr);
-        match resp {
-            Ok(ms) => println!("Ping {} took {} ms", svr, ms),
-            Err(e) => println!("[Error] {}", e),
-       }
+        print!("[ping test ");
+        io::stdout().flush().unwrap();
+        let mut acc: u128 = 0;
+        for _x in 0..num_pings {
+            let resp = server::ping_server(svr);
+            match resp {
+                Ok(ms) => {
+                    print!(".");
+                    io::stdout().flush().unwrap();
+                    acc = acc + ms;
+                },
+                Err(e) => println!("[Error] {}", e),
+            }
+        }
+        println!("]");
+        io::stdout().flush().unwrap();
+        println!("Avg ms: {}", acc/num_pings);
     }
 
     fn print_servers(servers: Vec<Server>) {
