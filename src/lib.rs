@@ -4,6 +4,8 @@ extern crate serde_derive;
 extern crate serde_json;
 #[macro_use] extern crate log;
 extern crate simplelog;
+extern crate indicatif;
+extern crate spinners;
 
 pub mod server {
 
@@ -62,25 +64,32 @@ pub mod server {
         }
     }
 
-    pub fn ping_server(server: &str, num_pings: u128) -> Result<u128, Box<error::Error>> {
+    pub fn ping_server(server: &str, num_pings: u128, progress: bool) -> Result<u128, Box<error::Error>> {
         use std::net::TcpStream;
         use std::io::{BufReader, BufRead, Write};
         use std::time::{Instant};
+
+        use indicatif::{ProgressBar};
+
+        let pb = ProgressBar::new(num_pings as u64 + 2);
 
         let all_servers = match list_servers() {
             Ok(n) => n,
             Err(_e) => Vec::<Server>::new(),
         };
+        if progress { pb.inc(1) };
 
         let s = all_servers
             .into_iter()
             .find(|s| s.id == server)
             .ok_or(format!("Can't find server '{}'", server))?;
         let serv = s.clone();
+        if progress { pb.inc(1) };
 
         let mut acc: u128 = 0;
         for _x in 0..num_pings {
             info!("Pinging {}", &serv.host);
+            if progress { pb.inc(1) };
             let conn = TcpStream::connect(&serv.host);
             match conn {
                 Ok(mut stream) => {
@@ -101,6 +110,7 @@ pub mod server {
                 Err(e) => {error!("Failed to connect to server: Error: '{}'", e); panic!();},
             }
         }
+        if progress { pb.finish()};
         Ok(acc / num_pings)
     }
 
@@ -111,11 +121,8 @@ pub mod server {
     }
 
     pub fn best_server(num_test: &str) -> Result<Server, Box<error::Error>> {
-        use std::io;
-        use std::io::Write;
-
-        print!("[finding best server ");
-        io::stdout().flush().unwrap();
+        use spinners::{Spinner, Spinners};
+        let sp = Spinner::new(Spinners::Dots12, "Finding best server".into());
         let mut servers = match list_servers() {
             Ok(s) => s,
             Err(e) => {error!("List servers failed: Error: '{}'", e); panic!();},
@@ -123,14 +130,12 @@ pub mod server {
         servers.sort_by_key(|s| s.distance);
         servers.truncate(num_test.parse::<usize>().unwrap());
         servers.iter_mut().for_each(|s| {
-            print!(".");
-            io::stdout().flush().unwrap();
-            s.latency = ping_server(&s.id, 1).unwrap();
+            s.latency = ping_server(&s.id, 1, false).unwrap();
         });
-        println!("]");
-        io::stdout().flush().unwrap();
         servers.sort_by_key(|s| s.latency);
         let best = servers[0].clone();
+        sp.stop();
+        println!();
         Ok(best)
     }
 }

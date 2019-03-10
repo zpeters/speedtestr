@@ -10,7 +10,7 @@ use speedtestr::{server, server::Server};
 fn main() {
     CombinedLogger::init(
         vec![
-            TermLogger::new(LevelFilter::Info, Config::default()).unwrap(),
+            TermLogger::new(LevelFilter::Error, Config::default()).unwrap(),
         ]
     ).unwrap();
     info!("speedtestr init");
@@ -73,7 +73,7 @@ fn main() {
                 best.id.as_str()
             };
 
-        let resp = server::ping_server(svr, num_pings);
+        let resp = server::ping_server(svr, num_pings, true);
         println!("Avg ms: {}", resp.unwrap());
     }
 
