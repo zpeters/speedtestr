@@ -31,8 +31,13 @@ pub mod server {
         use std::net::TcpStream;
         use std::time::{Instant};
         use std::io::{BufReader, BufRead, Write};
+        use spinners::{Spinner, Spinners};
 
         let dlsize: &str = "100000024";
+        println!("Reading {} bytes", dlsize);
+
+        let sp = Spinner::new(Spinners::Line, "Downloading".into());
+
         let all_servers = match list_servers() {
             Ok(n) => n,
             Err(_e) => Vec::<Server>::new(),
@@ -44,7 +49,6 @@ pub mod server {
             .ok_or(format!("Can't find server '{}'", server))?;
         let serv = s.clone();
 
-        println!("Reading {} bytes", dlsize);
         let conn = TcpStream::connect(&serv.host);
         match conn {
             Ok(mut stream) => {
@@ -58,6 +62,7 @@ pub mod server {
                 println!("Download took {} ms", elapsed);
                 let bms = dlsize.parse::<u128>().unwrap() / elapsed;
                 let mbps = bms as f64 * 0.008;
+                sp.stop();
                 Ok(mbps)
             },
             Err(e) => {error!("Failed to connect to server: Error: '{}'", e); panic!();},
@@ -71,20 +76,18 @@ pub mod server {
 
         use indicatif::{ProgressBar};
 
-        let pb = ProgressBar::new(num_pings as u64 + 2);
+        let pb = ProgressBar::new(num_pings as u64);
 
         let all_servers = match list_servers() {
             Ok(n) => n,
             Err(_e) => Vec::<Server>::new(),
         };
-        if progress { pb.inc(1) };
 
         let s = all_servers
             .into_iter()
             .find(|s| s.id == server)
             .ok_or(format!("Can't find server '{}'", server))?;
         let serv = s.clone();
-        if progress { pb.inc(1) };
 
         let mut acc: u128 = 0;
         for _x in 0..num_pings {
