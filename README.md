@@ -1,5 +1,6 @@
 = TODO
 
+work on figuring out what the UI should be
 
 == lib.rs
 - download
