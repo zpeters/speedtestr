@@ -10,6 +10,11 @@ pub mod server {
 
     use std::error;
 
+    use failure::{err_msg, Error, Fail};
+    #[derive(Debug, Fail)]
+    #[fail(display = "list error")]
+    pub struct ListServersError(#[fail(cause)] Error);
+
     #[derive(Clone, Debug, Deserialize)]
     pub struct Server {
         url: String,
@@ -114,10 +119,31 @@ pub mod server {
         Ok(acc / num_pings)
     }
 
-    pub fn list_servers() -> Result<Vec<Server>, Box<error::Error>> {
-        let body: Vec<Server> =
-            reqwest::get("https://www.speedtest.net/api/js/servers?engine=js")?.json()?;
-        Ok(body)
+    pub fn list_servers() -> Result<Vec<Server>, ListServersError> {
+        let resp = reqwest::get("https://speedtest.net/api/js/servers?engine=js");
+        match resp {
+            Ok(mut r) => {
+                let body = r.json();
+                match body {
+                    Ok(b) => {
+                        let newb: Vec<Server> = b;
+                        Ok(newb)
+                    }
+                    Err(e) => {
+                        return Err(ListServersError(err_msg(format!(
+                            "Error parsing list {}",
+                            e
+                        ))));
+                    }
+                }
+            }
+            Err(e) => {
+                return Err(ListServersError(err_msg(format!(
+                    "Error retrieving list {}",
+                    e
+                ))));
+            }
+        }
     }
 
     pub fn best_server(num_test: &str) -> Result<Server, Box<error::Error>> {

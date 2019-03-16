@@ -62,7 +62,7 @@ fn main() {
         let resp = server::list_servers();
         match resp {
             Ok(n) => print_servers(n),
-            Err(n) => error!("Err: {}", n),
+            Err(e) => error!("Err: {:?}", e),
         }
     }
 
