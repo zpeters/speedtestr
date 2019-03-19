@@ -1,5 +1,5 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/fxunefx1h5o1n3s8?svg=true)](https://ci.appveyor.com/project/zpeters/speedtestr)
-[![Build Status](https://travis-ci.org/zpeters/speedtestr.svg?branch=master)](https://travis-ci.org/zpeters/speedtestr)
+[![Build status - Appveyor (Windows)](https://ci.appveyor.com/api/projects/status/fxunefx1h5o1n3s8?svg=true)](https://ci.appveyor.com/project/zpeters/speedtestr)
+[![Build Status - TravisCI (Linux)](https://travis-ci.org/zpeters/speedtestr.svg?branch=master)](https://travis-ci.org/zpeters/speedtestr)
 ![Gitter](https://img.shields.io/gitter/room/zpeters/speedtestr.svg)
 ![GitHub](https://img.shields.io/github/license/zpeters/speedtestr.svg)
 
