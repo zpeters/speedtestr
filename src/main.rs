@@ -23,6 +23,16 @@ fn main() {
         .setting(AppSettings::ColoredHelp)
         .subcommand(SubCommand::with_name("list").about("Lists available servers"))
         .subcommand(
+            SubCommand::with_name("upload")
+                .arg(
+                    Arg::with_name("bytes")
+                        .short("b")
+                        .takes_value(true)
+                        .help("Number of bytes to upload"),
+                )
+                .about("Upload test"),
+        )
+        .subcommand(
             SubCommand::with_name("download")
                 .arg(
                     Arg::with_name("bytes")
@@ -71,6 +81,13 @@ fn main() {
         let best = server::best_server("3").unwrap().to_owned();
         let dl = server::download(best.id.as_str(), bytes).unwrap();
         println!("Download Results {:#?} mbps", dl);
+    }
+
+    if let Some(app) = app.subcommand_matches("upload") {
+        let bytes = app.value_of("bytes").unwrap_or("50000024");
+        let best = server::best_server("3").unwrap().to_owned();
+        let dl = server::upload(best.id.as_str(), bytes).unwrap();
+        println!("Upload Results {:#?} mbps", dl);
     }
 
     if let Some(app) = app.subcommand_matches("ping") {

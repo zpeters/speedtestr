@@ -4,6 +4,7 @@ extern crate serde_derive;
 extern crate serde_json;
 #[macro_use]
 extern crate log;
+extern crate rand;
 extern crate simplelog;
 
 pub mod server {
@@ -31,6 +32,63 @@ pub mod server {
         pub latency: u128,
     }
 
+    pub fn upload(server: &str, bytes: &str) -> Result<f64, Box<error::Error>> {
+        use rand::distributions::Alphanumeric;
+        use rand::{thread_rng, Rng};
+        use std::io::{BufRead, BufReader, Write};
+        use std::net::TcpStream;
+        use std::time::Instant;
+
+        println!("Writing {} bytes", bytes);
+
+        let all_servers = match list_servers() {
+            Ok(n) => n,
+            Err(_e) => Vec::<Server>::new(),
+        };
+
+        let s = all_servers
+            .into_iter()
+            .find(|s| s.id == server)
+            .ok_or_else(|| format!("Can't find server '{}'", server))?;
+        let serv = s.clone();
+
+        let conn = TcpStream::connect(&serv.host);
+        match conn {
+            Ok(mut stream) => {
+                // tell the server how much we are sending
+                let ulstring = format!("UPLOAD {} 0\r\n", bytes);
+                stream.write_all(ulstring.as_bytes()).unwrap();
+
+                // send the bytes
+                println!("generating random bytes");
+                let randnow = Instant::now();
+                let randstring: String = thread_rng()
+                    .sample_iter(&Alphanumeric)
+                    .take(bytes.parse::<usize>().unwrap())
+                    .collect();
+                let randelapsed = randnow.elapsed().as_millis();
+                println!("Random bytes took {} ms", randelapsed);
+
+                println!("uploading...");
+                let now = Instant::now();
+                stream.write_all(randstring.as_bytes()).unwrap();
+
+                let mut line = String::new();
+                let mut reader = BufReader::new(stream);
+                let _resp = reader.read_line(&mut line);
+                let elapsed = now.elapsed().as_millis();
+                println!("Upload took {} ms", elapsed);
+                let bms = bytes.parse::<u128>().unwrap() / elapsed;
+                let mbps = bms as f64 * 0.008;
+                Ok(mbps)
+            }
+            Err(e) => {
+                error!("Failed to connect to server: Error: '{}'", e);
+                panic!();
+            }
+        }
+    }
+
     pub fn download(server: &str, bytes: &str) -> Result<f64, Box<error::Error>> {
         use std::io::{BufRead, BufReader, Write};
         use std::net::TcpStream;
@@ -52,11 +110,11 @@ pub mod server {
         let conn = TcpStream::connect(&serv.host);
         match conn {
             Ok(mut stream) => {
-                let now = Instant::now();
                 let dlstring = format!("DOWNLOAD {}\r\n", bytes);
                 stream.write_all(dlstring.as_bytes()).unwrap();
                 let mut line = String::new();
                 let mut reader = BufReader::new(stream);
+                let now = Instant::now();
                 let _resp = reader.read_line(&mut line);
                 let elapsed = now.elapsed().as_millis();
                 println!("Download took {} ms", elapsed);
@@ -129,20 +187,16 @@ pub mod server {
                         let newb: Vec<Server> = b;
                         Ok(newb)
                     }
-                    Err(e) => {
-                        return Err(ListServersError(err_msg(format!(
-                            "Error parsing list {}",
-                            e
-                        ))));
-                    }
+                    Err(e) => Err(ListServersError(err_msg(format!(
+                        "Error parsing list {}",
+                        e
+                    )))),
                 }
             }
-            Err(e) => {
-                return Err(ListServersError(err_msg(format!(
-                    "Error retrieving list {}",
-                    e
-                ))));
-            }
+            Err(e) => Err(ListServersError(err_msg(format!(
+                "Error retrieving list {}",
+                e
+            )))),
         }
     }
 
