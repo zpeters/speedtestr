@@ -6,6 +6,7 @@
 # TODO
 
 ## General
+- add manual build instructions
 - general refactor of code.  This is embarrassing. 😕 I'm still learning rust and i'm getting this out as fast as possible and learning correct techniques as i go.
 - figure out what the UI should be
 - once mechanics are completed, implement actual testing (ie sustained uplaod, download, etc)
@@ -20,6 +21,15 @@
 ## cleanup / refactor
 - clean up main.rs
 - clean up lib.rs
+
+# cross compile notes
+cross build --target TARGET HERE
+
+## targets
+- x86_64-pc-windows-gnu
+- x86_64-pc-windows-msvc
+- x86_64-unknown-linux-gnu 
+- mac - build natively
 
 
 # Notes
