@@ -8,7 +8,7 @@
 ## General
  - figure out what the UI should be
 - better error handling on bad server id
-- makefiles for cross compile or use travis/appveyor for xplatform builds
+- figure out how to cross compile for windows/mac/linux
 - doc
 - testing
 
