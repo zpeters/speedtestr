@@ -1,20 +1,9 @@
 extern crate clap;
 extern crate speedtestr;
-#[macro_use]
-extern crate log;
-extern crate simplelog;
-
 use clap::{App, AppSettings, Arg, SubCommand};
-use simplelog::*;
 use speedtestr::{server, server::Server};
 
 fn main() {
-    CombinedLogger::init(vec![
-        TermLogger::new(LevelFilter::Error, Config::default()).unwrap()
-    ])
-    .unwrap();
-    info!("speedtestr init");
-
     let app = App::new("speedtestr")
         .version("0.0.1")
         .about("Unofficial speedtest cli")
@@ -46,12 +35,6 @@ fn main() {
             SubCommand::with_name("ping")
                 .about("Pings the best server")
                 .arg(
-                    Arg::with_name("numservers")
-                        .short("n")
-                        .takes_value(true)
-                        .help("Number of servers to test with"),
-                )
-                .arg(
                     Arg::with_name("numpings")
                         .short("p")
                         .takes_value(true)
@@ -66,13 +49,11 @@ fn main() {
         )
         .get_matches();
 
-    info!("Arguments {:#?}", app);
-
     if app.is_present("list") {
         let resp = server::list_servers();
         match resp {
             Ok(n) => print_servers(n),
-            Err(e) => error!("Err: {:?}", e),
+            Err(e) => println!("Err: {:?}", e),
         }
     }
 
@@ -91,26 +72,18 @@ fn main() {
     }
 
     if let Some(app) = app.subcommand_matches("ping") {
-        let best;
-        let num_best = app.value_of("numservers").unwrap_or("3");
+        let best = server::best_server("3").unwrap().to_owned();
         let num_pings = app
             .value_of("numpings")
             .unwrap_or("3")
             .parse::<u128>()
             .unwrap();
-        info!(
-            "Ping test (servers: {}/Given? {}, pings: {}/Given? {})",
-            num_best,
-            app.is_present("numservers"),
-            num_pings,
-            app.is_present("numpings")
-        );
+        ;
 
         println!("[ping test]");
         let svr = if app.is_present("server") {
             app.value_of("server").unwrap()
         } else {
-            best = server::best_server(num_best).unwrap().to_owned();
             best.id.as_str()
         };
 

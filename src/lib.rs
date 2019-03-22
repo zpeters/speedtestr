@@ -1,11 +1,8 @@
 extern crate reqwest;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
-#[macro_use]
-extern crate log;
 extern crate rand;
-extern crate simplelog;
+extern crate serde_json;
 
 pub mod server {
 
@@ -18,12 +15,8 @@ pub mod server {
 
     #[derive(Clone, Debug, Deserialize)]
     pub struct Server {
-        url: String,
-        lat: String,
-        lon: String,
         pub distance: i32,
         pub name: String,
-        country: String,
         pub cc: String,
         pub sponsor: String,
         pub id: String,
@@ -74,7 +67,7 @@ pub mod server {
                 Ok(mbps)
             }
             Err(e) => {
-                error!("Failed to connect to server: Error: '{}'", e);
+                println!("Failed to connect to server: Error: '{}'", e);
                 panic!();
             }
         }
@@ -105,7 +98,7 @@ pub mod server {
                 Ok(mbps)
             }
             Err(e) => {
-                error!("Failed to connect to server: Error: '{}'", e);
+                println!("Failed to connect to server: Error: '{}'", e);
                 panic!();
             }
         }
@@ -120,7 +113,6 @@ pub mod server {
 
         let mut acc: u128 = 0;
         for _x in 0..num_pings {
-            info!("Pinging {}", &serv.host);
             let conn = TcpStream::connect(&serv.host);
             match conn {
                 Ok(mut stream) => {
@@ -133,16 +125,15 @@ pub mod server {
                         Ok(_n) => {
                             let elapsed = now.elapsed().as_millis();
                             acc += elapsed;
-                            info!("Ping {} ms", elapsed);
                         }
                         Err(e) => {
-                            error!("Failed to ping server: Error: '{}'", e);
+                            println!("Failed to ping server: Error: '{}'", e);
                             panic!();
                         }
                     }
                 }
                 Err(e) => {
-                    error!("Failed to connect to server: Error: '{}'", e);
+                    println!("Failed to connect to server: Error: '{}'", e);
                     panic!();
                 }
             }
@@ -178,7 +169,7 @@ pub mod server {
         let mut servers = match list_servers() {
             Ok(s) => s,
             Err(e) => {
-                error!("List servers failed: Error: '{}'", e);
+                println!("List servers failed: Error: '{}'", e);
                 panic!();
             }
         };
