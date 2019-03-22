@@ -41,16 +41,7 @@ pub mod server {
 
         println!("Writing {} bytes", bytes);
 
-        let all_servers = match list_servers() {
-            Ok(n) => n,
-            Err(_e) => Vec::<Server>::new(),
-        };
-
-        let s = all_servers
-            .into_iter()
-            .find(|s| s.id == server)
-            .ok_or_else(|| format!("Can't find server '{}'", server))?;
-        let serv = s.clone();
+        let serv = find_server(server);
 
         let conn = TcpStream::connect(&serv.host);
         match conn {
@@ -96,16 +87,7 @@ pub mod server {
 
         println!("Reading {} bytes", bytes);
 
-        let all_servers = match list_servers() {
-            Ok(n) => n,
-            Err(_e) => Vec::<Server>::new(),
-        };
-
-        let s = all_servers
-            .into_iter()
-            .find(|s| s.id == server)
-            .ok_or_else(|| format!("Can't find server '{}'", server))?;
-        let serv = s.clone();
+        let serv = find_server(server);
 
         let conn = TcpStream::connect(&serv.host);
         match conn {
@@ -134,16 +116,7 @@ pub mod server {
         use std::net::TcpStream;
         use std::time::Instant;
 
-        let all_servers = match list_servers() {
-            Ok(n) => n,
-            Err(_e) => Vec::<Server>::new(),
-        };
-
-        let s = all_servers
-            .into_iter()
-            .find(|s| s.id == server)
-            .ok_or_else(|| format!("Can't find server '{}'", server))?;
-        let serv = s.clone();
+        let serv = find_server(server);
 
         let mut acc: u128 = 0;
         for _x in 0..num_pings {
@@ -217,6 +190,19 @@ pub mod server {
         servers.sort_by_key(|s| s.latency);
         let best = servers[0].clone();
         Ok(best)
+    }
+
+    fn find_server(server: &str) -> Server {
+        let all_servers = match list_servers() {
+            Ok(n) => n,
+            Err(_e) => Vec::<Server>::new(),
+        };
+
+        all_servers
+            .into_iter()
+            .find(|s| s.id == server)
+            .ok_or_else(|| format!("Can't find server '{}'", server))
+            .unwrap()
     }
 }
 
