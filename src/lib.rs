@@ -53,7 +53,7 @@ pub mod server {
                 let randelapsed = randnow.elapsed().as_millis();
                 println!("Random bytes took {} ms", randelapsed);
 
-                println!("uploading...");
+                println!("Uploading...");
                 let now = Instant::now();
                 stream.write_all(randstring.as_bytes()).unwrap();
 

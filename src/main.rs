@@ -10,20 +10,26 @@ fn main() {
         .author("Zach Peters")
         .setting(AppSettings::ArgRequiredElseHelp)
         .setting(AppSettings::ColoredHelp)
-        .subcommand(SubCommand::with_name("list").about("Lists available servers"))
+        .subcommand(SubCommand::with_name("List").about("Lists available servers"))
         .subcommand(
-            SubCommand::with_name("upload")
-                .arg(
+            SubCommand::with_name("Upload")
+                .arg (
                     Arg::with_name("bytes")
                         .short("b")
                         .takes_value(true)
                         .help("Number of bytes to upload"),
                 )
+                .arg(
+                    Arg::with_name("Server")
+                        .short("s")
+                        .takes_value(true)
+                        .help("specify a server number to ping"),
+                )
                 .about("Upload test"),
         )
         .subcommand(
-            SubCommand::with_name("download")
-                .arg(
+            SubCommand::with_name("Download")
+                .arg (
                     Arg::with_name("bytes")
                         .short("b")
                         .takes_value(true)
@@ -32,16 +38,16 @@ fn main() {
                 .about("Download test"),
         )
         .subcommand(
-            SubCommand::with_name("ping")
+            SubCommand::with_name("Ping")
                 .about("Pings the best server")
-                .arg(
+                .arg (
                     Arg::with_name("numpings")
                         .short("p")
                         .takes_value(true)
                         .help("Number of pings to test with"),
                 )
-                .arg(
-                    Arg::with_name("server")
+                .arg (
+                    Arg::with_name("Server")
                         .short("s")
                         .takes_value(true)
                         .help("specify a server number to ping"),
@@ -49,7 +55,7 @@ fn main() {
         )
         .get_matches();
 
-    if app.is_present("list") {
+    if app.is_present("List") {
         let resp = server::list_servers();
         match resp {
             Ok(n) => print_servers(n),
@@ -57,21 +63,31 @@ fn main() {
         }
     }
 
-    if let Some(app) = app.subcommand_matches("download") {
-        let bytes = app.value_of("bytes").unwrap_or("100000024");
+    if let Some(app) = app.subcommand_matches("Download") {
         let best = server::best_server("3").unwrap().to_owned();
+        let bytes = app.value_of("bytes").unwrap_or("100000024");
+        let svr = if app.is_present("Server") {
+            app.value_of("Server").unwrap()
+        } else {
+            best.id.as_str()
+        };
         let dl = server::download(best.id.as_str(), bytes).unwrap();
         println!("Download Results {:#?} mbps", dl);
     }
 
-    if let Some(app) = app.subcommand_matches("upload") {
-        let bytes = app.value_of("bytes").unwrap_or("50000024");
+    if let Some(app) = app.subcommand_matches("Upload") {
         let best = server::best_server("3").unwrap().to_owned();
+        let bytes = app.value_of("bytes").unwrap_or("50000024");
+        let svr = if app.is_present("Server") {
+            app.value_of("Server").unwrap()
+        } else {
+            best.id.as_str()
+        };
         let dl = server::upload(best.id.as_str(), bytes).unwrap();
         println!("Upload Results {:#?} mbps", dl);
     }
 
-    if let Some(app) = app.subcommand_matches("ping") {
+    if let Some(app) = app.subcommand_matches("Ping") {
         let best = server::best_server("3").unwrap().to_owned();
         let num_pings = app
             .value_of("numpings")
@@ -81,8 +97,8 @@ fn main() {
         ;
 
         println!("[ping test]");
-        let svr = if app.is_present("server") {
-            app.value_of("server").unwrap()
+        let svr = if app.is_present("Server") {
+            app.value_of("Server").unwrap()
         } else {
             best.id.as_str()
         };
