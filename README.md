@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/zpeters/speedtestr.svg?branch=master)](https://travis-ci.org/zpeters/speedtestr)
 [![Build status](https://ci.appveyor.com/api/projects/status/p0qq7rtmg7u3kwxl?svg=true)](https://ci.appveyor.com/project/zpeters/speedtestr)
-[![Join the chat at https://gitter.im/speedtestr/community](https://badges.gitter.im/speedtestr/community.svg)](https://gitter.im/speedtestr/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+![GitHub issues](https://img.shields.io/github/issues-raw/zpeters/speedtestr.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # Notes
