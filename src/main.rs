@@ -78,7 +78,6 @@ fn main() {
             .unwrap_or("3")
             .parse::<u128>()
             .unwrap();
-        ;
 
         println!("[ping test]");
         let svr = if app.is_present("server") {
