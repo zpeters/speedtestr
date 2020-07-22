@@ -1,7 +1,8 @@
-extern crate clap;
-extern crate speedtestr;
 use clap::{App, AppSettings, Arg, SubCommand};
 use speedtestr::{server, server::Server};
+
+const NUM_SERVERS_BEST_SERVER: &str = "3";
+const NUM_PINGS_DEFAULT: &str = "3";
 
 fn main() {
     let app = App::new("speedtestr")
@@ -59,23 +60,23 @@ fn main() {
 
     if let Some(app) = app.subcommand_matches("download") {
         let bytes = app.value_of("bytes").unwrap_or("100000024");
-        let best = server::best_server("3").unwrap();
+        let best = server::best_server(NUM_SERVERS_BEST_SERVER).unwrap();
         let dl = server::download(best.id.as_str(), bytes).unwrap();
         println!("Download Results {:#?} mbps", dl);
     }
 
     if let Some(app) = app.subcommand_matches("upload") {
         let bytes = app.value_of("bytes").unwrap_or("50000024");
-        let best = server::best_server("3").unwrap();
+        let best = server::best_server(NUM_SERVERS_BEST_SERVER).unwrap();
         let dl = server::upload(best.id.as_str(), bytes).unwrap();
         println!("Upload Results {:#?} mbps", dl);
     }
 
     if let Some(app) = app.subcommand_matches("ping") {
-        let best = server::best_server("3").unwrap();
+        let best = server::best_server(NUM_SERVERS_BEST_SERVER).unwrap();
         let num_pings = app
             .value_of("numpings")
-            .unwrap_or("3")
+            .unwrap_or(NUM_PINGS_DEFAULT)
             .parse::<u128>()
             .unwrap();
 

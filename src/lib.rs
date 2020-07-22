@@ -1,7 +1,3 @@
-extern crate reqwest;
-extern crate rand;
-
-
 pub mod server {
 
     use std::error;
