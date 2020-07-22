@@ -4,11 +4,8 @@ pub mod server {
 
     use serde::{Deserialize};
 
-    use failure::{Error, Fail};
-    #[derive(Debug, Fail)]
-    #[fail(display = "list error")]
-    pub struct ListServersError(#[fail(cause)] Error);
-
+    /// Server struct, most of the items from from the speedtest server listing
+    /// latency is filled in after a ping test
     #[derive(Clone, Debug, Deserialize)]
     pub struct Server {
         pub distance: i32,
@@ -21,6 +18,9 @@ pub mod server {
         pub latency: u128,
     }
 
+    /// Perform an upload test of *bytes* random bytes
+    /// This creates a tcp stream to *server* and uploads the random bytes
+    /// returns mbps, calculated as bytes / seconds * 0.008
     pub fn upload(server: &str, bytes: &str) -> Result<f64, Box<dyn error::Error>> {
         use rand::distributions::Alphanumeric;
         use rand::{thread_rng, Rng};
@@ -69,6 +69,7 @@ pub mod server {
         }
     }
 
+    /// Downloads *bytes* bytes from *server*  Returns mbps
     pub fn download(server: &str, bytes: &str) -> Result<f64, Box<dyn error::Error>> {
         use std::io::{BufRead, BufReader, Write};
         use std::net::TcpStream;
@@ -100,6 +101,7 @@ pub mod server {
         }
     }
 
+    /// Pings *server* *num_pings* times.  The results is the average time of *num_pings* results
     pub fn ping_server(server: &str, num_pings: u128) -> Result<u128, Box<dyn error::Error>> {
         use std::io::{BufRead, BufReader, Write};
         use std::net::TcpStream;
@@ -137,6 +139,7 @@ pub mod server {
         Ok(acc / num_pings)
     }
 
+    /// Get the public list of servers from speedtest api
     #[tokio::main]
     pub async fn list_servers() -> Result<Vec<Server>, Box<dyn std::error::Error>> {
         let url = "https://speedtest.net/api/js/servers?engine=js";
@@ -147,6 +150,7 @@ pub mod server {
         Ok(resp)
     }
 
+    /// Find the "best" server determined by the lowest latency from a ping test
     pub fn best_server(num_test: &str) -> Result<Server, Box<dyn error::Error>> {
         println!("Finding best server...");
         let mut servers = match list_servers() {

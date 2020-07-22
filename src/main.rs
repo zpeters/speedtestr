@@ -1,7 +1,11 @@
 use clap::{App, AppSettings, Arg, SubCommand};
 use speedtestr::{server, server::Server};
 
+/// Number of servers to test to determine the "best" servers
+/// this is currently not configurable
 const NUM_SERVERS_BEST_SERVER: &str = "3";
+/// Default number of pings to use to test latency
+/// this is configurable with the *-p* option
 const NUM_PINGS_DEFAULT: &str = "3";
 
 fn main() {
