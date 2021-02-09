@@ -45,6 +45,7 @@ pub mod server {
                 let randstring: String = thread_rng()
                     .sample_iter(&Alphanumeric)
                     .take(bytes.parse::<usize>().unwrap())
+                    .map(char::from)
                     .collect();
                 let randelapsed = randnow.elapsed().as_millis();
                 println!("Random bytes took {} ms", randelapsed);
