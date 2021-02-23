@@ -2,7 +2,7 @@ pub mod server {
 
     use std::error;
 
-    use serde::{Deserialize};
+    use serde::Deserialize;
 
     /// Server struct, most of the items from from the speedtest server listing
     /// latency is filled in after a ping test
@@ -144,10 +144,7 @@ pub mod server {
     #[tokio::main]
     pub async fn list_servers() -> Result<Vec<Server>, Box<dyn std::error::Error>> {
         let url = "https://speedtest.net/api/js/servers?engine=js";
-        let resp = reqwest::get(url)
-            .await?
-            .json::<Vec<Server>>()
-            .await?;
+        let resp = reqwest::get(url).await?.json::<Vec<Server>>().await?;
         Ok(resp)
     }
 
