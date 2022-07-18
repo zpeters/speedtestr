@@ -1,4 +1,4 @@
-use clap::{App, AppSettings, Arg, SubCommand};
+use clap::{value_parser, App, AppSettings, Arg, Command};
 use speedtestr::{server, server::Server};
 
 /// Number of servers to test to determine the "best" servers
@@ -15,84 +15,105 @@ fn main() {
         .author("Zach Peters")
         .setting(AppSettings::ArgRequiredElseHelp)
         .setting(AppSettings::ColoredHelp)
-        .subcommand(SubCommand::with_name("list").about("Lists available servers"))
+        .subcommand(Command::new("list").about("Lists available servers"))
         .subcommand(
-            SubCommand::with_name("upload")
-                .arg(
-                    Arg::with_name("bytes")
-                        .short('b')
-                        .takes_value(true)
-                        .help("Number of bytes to upload"),
-                )
-                .about("Upload test"),
+            Command::new("upload").about("Upload test").arg(
+                Arg::new("bytes")
+                    .short('b')
+                    .takes_value(true)
+                    .help("Number of bytes to upload"),
+            ),
         )
         .subcommand(
-            SubCommand::with_name("download")
-                .arg(
-                    Arg::with_name("bytes")
-                        .short('b')
-                        .takes_value(true)
-                        .help("Number of bytes to download"),
-                )
-                .about("Download test"),
+            Command::new("download").about("Download test").arg(
+                Arg::new("bytes")
+                    .short('b')
+                    .takes_value(true)
+                    .help("Number of bytes to download"),
+            ),
         )
         .subcommand(
-            SubCommand::with_name("ping")
+            Command::new("ping")
                 .about("Pings the best server")
                 .arg(
-                    Arg::with_name("numpings")
+                    Arg::new("numpings")
                         .short('p')
                         .takes_value(true)
+                        .value_parser(value_parser!(u128))
+                        .default_value(NUM_PINGS_DEFAULT)
                         .help("Number of pings to test with"),
                 )
                 .arg(
-                    Arg::with_name("server")
+                    Arg::new("server")
                         .short('s')
                         .takes_value(true)
-                        .help("specify a server number to ping"),
+                        .help("Specify a server number to ping"),
                 ),
         )
         .get_matches();
 
-    if app.is_present("list") {
-        let resp = server::list_servers();
-        match resp {
-            Ok(n) => print_servers(n),
-            Err(e) => println!("Err: {:?}", e),
+    match app.subcommand() {
+        Some(("list", _)) => {
+            let resp = server::list_servers();
+            match resp {
+                Ok(n) => print_servers(n),
+                Err(e) => println!("Err: {:?}", e),
+            }
         }
-    }
+        // TODO refactor
+        // - dedeup if
+        // - send int instead of string, use underscores for legibility
+        Some(("upload", sub_matches)) => {
+            let bytes = sub_matches.get_one::<String>("bytes");
+            if let Some(b) = bytes {
+                println!("Upload bytes: {:?}", b);
+                let best = server::best_server(NUM_SERVERS_BEST_SERVER).unwrap();
+                let dl = server::upload(best.id.as_str(), b).unwrap();
+                println!("Upload Results {:#?} mbps", dl);
+            } else {
+                let bytes = "50000024";
+                println!("Upload Bytes: {} (default)", bytes);
+                let best = server::best_server(NUM_SERVERS_BEST_SERVER).unwrap();
+                let dl = server::upload(best.id.as_str(), bytes).unwrap();
+                println!("Upload Results {:#?} mbps", dl);
+            }
+        }
+        // TODO refactor
+        // - dedeup if
+        // - send int instead of string, use underscores for legibility
+        Some(("download", sub_matches)) => {
+            let bytes = sub_matches.get_one::<String>("bytes");
+            if let Some(b) = bytes {
+                println!("Download bytes: {:?}", b);
+                let best = server::best_server(NUM_SERVERS_BEST_SERVER).unwrap();
+                let dl = server::download(best.id.as_str(), b).unwrap();
+                println!("Download Results {:#?} mbps", dl);
+            } else {
+                let bytes = "100000024";
+                println!("Download Bytes: {} (default)", bytes);
+                let best = server::best_server(NUM_SERVERS_BEST_SERVER).unwrap();
+                let dl = server::download(best.id.as_str(), bytes).unwrap();
+                println!("Download Results {:#?} mbps", dl);
+            }
+        }
+        // TODO refactor
+        // - clean up ref/deref, it looks gross
+        // - deduplicate the if let statement
+        Some(("ping", sub_matches)) => {
+            let n = sub_matches.get_one::<u128>("numpings").unwrap();
+            println!("num pings: {:?}", n);
 
-    if let Some(app) = app.subcommand_matches("download") {
-        let bytes = app.value_of("bytes").unwrap_or("100000024");
-        let best = server::best_server(NUM_SERVERS_BEST_SERVER).unwrap();
-        let dl = server::download(best.id.as_str(), bytes).unwrap();
-        println!("Download Results {:#?} mbps", dl);
-    }
-
-    if let Some(app) = app.subcommand_matches("upload") {
-        let bytes = app.value_of("bytes").unwrap_or("50000024");
-        let best = server::best_server(NUM_SERVERS_BEST_SERVER).unwrap();
-        let dl = server::upload(best.id.as_str(), bytes).unwrap();
-        println!("Upload Results {:#?} mbps", dl);
-    }
-
-    if let Some(app) = app.subcommand_matches("ping") {
-        let best = server::best_server(NUM_SERVERS_BEST_SERVER).unwrap();
-        let num_pings = app
-            .value_of("numpings")
-            .unwrap_or(NUM_PINGS_DEFAULT)
-            .parse::<u128>()
-            .unwrap();
-
-        println!("[ping test]");
-        let svr = if app.is_present("server") {
-            app.value_of("server").unwrap()
-        } else {
-            best.id.as_str()
-        };
-
-        let resp = server::ping_server(svr, num_pings);
-        println!("Avg ms: {}", resp.unwrap());
+            let svr = sub_matches.get_one::<String>("server");
+            if let None = svr {
+                let best = server::best_server(NUM_SERVERS_BEST_SERVER).unwrap();
+                let resp = server::ping_server(&best.id, *n);
+                println!("Avg ms: {}", resp.unwrap());
+            } else {
+                let resp = server::ping_server(svr.unwrap(), *n);
+                println!("Avg ms: {}", resp.unwrap());
+            }
+        }
+        _ => unreachable!("Exhaused list of subsommands"),
     }
 
     fn print_servers(servers: Vec<Server>) {
