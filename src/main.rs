@@ -20,7 +20,7 @@ fn main() {
             SubCommand::with_name("upload")
                 .arg(
                     Arg::with_name("bytes")
-                        .short("b")
+                        .short('b')
                         .takes_value(true)
                         .help("Number of bytes to upload"),
                 )
@@ -30,7 +30,7 @@ fn main() {
             SubCommand::with_name("download")
                 .arg(
                     Arg::with_name("bytes")
-                        .short("b")
+                        .short('b')
                         .takes_value(true)
                         .help("Number of bytes to download"),
                 )
@@ -41,13 +41,13 @@ fn main() {
                 .about("Pings the best server")
                 .arg(
                     Arg::with_name("numpings")
-                        .short("p")
+                        .short('p')
                         .takes_value(true)
                         .help("Number of pings to test with"),
                 )
                 .arg(
                     Arg::with_name("server")
-                        .short("s")
+                        .short('s')
                         .takes_value(true)
                         .help("specify a server number to ping"),
                 ),
